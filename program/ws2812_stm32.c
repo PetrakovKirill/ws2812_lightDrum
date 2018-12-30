@@ -1,0 +1,112 @@
+#include <stdint.h>
+#include <stdlib.h>
+#include "stm32f10x.h"
+#include "hw_spi.h"
+#include "ws2812.h"
+
+static const uint32_t ws2812Map[256] = {
+    0x88888888, 0x8C888888, 0xC8888888, 0xCC888888, 0x888C8888, 0x8C8C8888, 0xC88C8888,
+    0xCC8C8888, 0x88C88888, 0x8CC88888, 0xC8C88888, 0xCCC88888, 0x88CC8888, 0x8CCC8888,
+    0xC8CC8888, 0xCCCC8888, 0x88888C88, 0x8C888C88, 0xC8888C88, 0xCC888C88, 0x888C8C88,
+    0x8C8C8C88, 0xC88C8C88, 0xCC8C8C88, 0x88C88C88, 0x8CC88C88, 0xC8C88C88, 0xCCC88C88,
+    0x88CC8C88, 0x8CCC8C88, 0xC8CC8C88, 0xCCCC8C88, 0x8888C888, 0x8C88C888, 0xC888C888,
+    0xCC88C888, 0x888CC888, 0x8C8CC888, 0xC88CC888, 0xCC8CC888, 0x88C8C888, 0x8CC8C888,
+    0xC8C8C888, 0xCCC8C888, 0x88CCC888, 0x8CCCC888, 0xC8CCC888, 0xCCCCC888, 0x8888CC88, 
+    0x8C88CC88, 0xC888CC88, 0xCC88CC88, 0x888CCC88, 0x8C8CCC88, 0xC88CCC88, 0xCC8CCC88,
+    0x88C8CC88, 0x8CC8CC88, 0xC8C8CC88, 0xCCC8CC88, 0x88CCCC88, 0x8CCCCC88, 0xC8CCCC88,
+    0xCCCCCC88, 0x8888888C, 0x8C88888C, 0xC888888C, 0xCC88888C, 0x888C888C, 0x8C8C888C,
+    0xC88C888C, 0xCC8C888C, 0x88C8888C, 0x8CC8888C, 0xC8C8888C, 0xCCC8888C, 0x88CC888C,
+    0x8CCC888C, 0xC8CC888C, 0xCCCC888C, 0x88888C8C, 0x8C888C8C, 0xC8888C8C, 0xCC888C8C,
+    0x888C8C8C, 0x8C8C8C8C, 0xC88C8C8C, 0xCC8C8C8C, 0x88C88C8C, 0x8CC88C8C, 0xC8C88C8C,
+    0xCCC88C8C, 0x88CC8C8C, 0x8CCC8C8C, 0xC8CC8C8C, 0xCCCC8C8C, 0x8888C88C, 0x8C88C88C, 
+    0xC888C88C, 0xCC88C88C, 0x888CC88C, 0x8C8CC88C, 0xC88CC88C, 0xCC8CC88C, 0x88C8C88C,
+    0x8CC8C88C, 0xC8C8C88C, 0xCCC8C88C, 0x88CCC88C, 0x8CCCC88C, 0xC8CCC88C, 0xCCCCC88C,
+    0x8888CC8C, 0x8C88CC8C, 0xC888CC8C, 0xCC88CC8C, 0x888CCC8C, 0x8C8CCC8C, 0xC88CCC8C,
+    0xCC8CCC8C, 0x88C8CC8C, 0x8CC8CC8C, 0xC8C8CC8C, 0xCCC8CC8C, 0x88CCCC8C, 0x8CCCCC8C,
+    0xC8CCCC8C, 0xCCCCCC8C, 0x888888C8, 0x8C8888C8, 0xC88888C8, 0xCC8888C8, 0x888C88C8,
+    0x8C8C88C8, 0xC88C88C8, 0xCC8C88C8, 0x88C888C8, 0x8CC888C8, 0xC8C888C8, 0xCCC888C8,
+    0x88CC88C8, 0x8CCC88C8, 0xC8CC88C8, 0xCCCC88C8, 0x88888CC8, 0x8C888CC8, 0xC8888CC8,
+    0xCC888CC8, 0x888C8CC8, 0x8C8C8CC8, 0xC88C8CC8, 0xCC8C8CC8, 0x88C88CC8, 0x8CC88CC8,
+    0xC8C88CC8, 0xCCC88CC8, 0x88CC8CC8, 0x8CCC8CC8, 0xC8CC8CC8, 0xCCCC8CC8, 0x8888C8C8, 
+    0x8C88C8C8, 0xC888C8C8, 0xCC88C8C8, 0x888CC8C8, 0x8C8CC8C8, 0xC88CC8C8, 0xCC8CC8C8,
+    0x88C8C8C8, 0x8CC8C8C8, 0xC8C8C8C8, 0xCCC8C8C8, 0x88CCC8C8, 0x8CCCC8C8, 0xC8CCC8C8,
+    0xCCCCC8C8, 0x8888CCC8, 0x8C88CCC8, 0xC888CCC8, 0xCC88CCC8, 0x888CCCC8, 0x8C8CCCC8,
+    0xC88CCCC8, 0xCC8CCCC8, 0x88C8CCC8, 0x8CC8CCC8, 0xC8C8CCC8, 0xCCC8CCC8, 0x88CCCCC8,
+    0x8CCCCCC8, 0xC8CCCCC8, 0xCCCCCCC8, 0x888888CC, 0x8C8888CC, 0xC88888CC, 0xCC8888CC,
+    0x888C88CC, 0x8C8C88CC, 0xC88C88CC, 0xCC8C88CC, 0x88C888CC, 0x8CC888CC, 0xC8C888CC,
+    0xCCC888CC, 0x88CC88CC, 0x8CCC88CC, 0xC8CC88CC, 0xCCCC88CC, 0x88888CCC, 0x8C888CCC, 
+    0xC8888CCC, 0xCC888CCC, 0x888C8CCC, 0x8C8C8CCC, 0xC88C8CCC, 0xCC8C8CCC, 0x88C88CCC,
+    0x8CC88CCC, 0xC8C88CCC, 0xCCC88CCC, 0x88CC8CCC, 0x8CCC8CCC, 0xC8CC8CCC, 0xCCCC8CCC,
+    0x8888C8CC, 0x8C88C8CC, 0xC888C8CC, 0xCC88C8CC, 0x888CC8CC, 0x8C8CC8CC, 0xC88CC8CC,
+    0xCC8CC8CC, 0x88C8C8CC, 0x8CC8C8CC, 0xC8C8C8CC, 0xCCC8C8CC, 0x88CCC8CC, 0x8CCCC8CC,
+    0xC8CCC8CC, 0xCCCCC8CC, 0x8888CCCC, 0x8C88CCCC, 0xC888CCCC, 0xCC88CCCC, 0x888CCCCC,
+    0x8C8CCCCC, 0xC88CCCCC, 0xCC8CCCCC, 0x88C8CCCC, 0x8CC8CCCC, 0xC8C8CCCC, 0xCCC8CCCC,
+    0x88CCCCCC, 0x8CCCCCCC, 0xC8CCCCCC, 0xCCCCCCCC
+};
+
+static vTable_iSmartLeds ws2812_SmartLeds;
+
+/* Дополнительная структура описания параметров одного светдиода */
+typedef struct ws2812Led_t {
+    uint32_t b, r, g;
+} ws2812Led_t;
+
+
+/* Главная структура объекта */
+typedef struct ws2812_t {
+    /* Наследование от интерфейса iSmartLeds */
+    iSmartLeds iFace;
+
+    /* Данные объекта */
+    hardwareSpi_t *hwIFace;
+    unsigned       numPix;
+    ws2812Led_t   *arrayPix;
+} ws2812_t;
+
+/* Методы доступные объекту */
+void * WS2812_Constructor(unsigned numPixels, void *hwIFace) {
+    ws2812_t *_this = calloc(1, sizeof(ws2812_t));
+
+    if ((hwIFace == NULL) || (_this == NULL)) {
+        return (NULL);
+    }
+
+    /* Инициализация объекта */
+    _this->hwIFace      = hwIFace;
+    _this->iFace.vTable = &ws2812_SmartLeds;
+    _this->numPix       = numPixels;
+    _this->arrayPix     = calloc((numPixels), sizeof(ws2812Led_t));
+
+    if (_this->arrayPix == NULL) {
+        free(_this);
+        return (NULL);
+    }
+
+    return (_this);
+}
+
+
+static void WS2812_Show(void *obj) {
+    ws2812_t *_this = obj;
+    HardwareSpi_Transfer(_this->hwIFace, _this->arrayPix, _this->numPix * sizeof(ws2812Led_t));
+}
+
+
+static void WS2812_SetColorPixel(void *obj,unsigned numPix, unsigned colorPix) {
+    ws2812_t *_this =  obj;
+    uint8_t  * c    = (uint8_t *)&colorPix;
+
+    /* Защита от выхода за границы массива */
+    if (numPix >= _this->numPix) {
+        return;
+    }
+    _this->arrayPix[numPix].b = ws2812Map[ c[2] ];
+    _this->arrayPix[numPix].r = ws2812Map[ c[1] ];
+    _this->arrayPix[numPix].g = ws2812Map[ c[0] ];
+}
+
+
+static vTable_iSmartLeds ws2812_SmartLeds = {
+    WS2812_Show,
+    WS2812_SetColorPixel
+};
