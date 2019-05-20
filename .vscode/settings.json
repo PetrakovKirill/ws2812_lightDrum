@@ -1,0 +1,21 @@
+{
+    "files.associations": {
+        "hw_config.h": "c",
+        "usb_lib.h": "c",
+        "usb_init.h": "c",
+        "usb_core.h": "c",
+        "stm32_it.h": "c",
+        "platform_config.h": "c",
+        "stm32f10x.h": "c",
+        "usb_type.h": "c",
+        "usb_conf.h": "c",
+        "usb_pwr.h": "c",
+        "usb_vcom.h": "c",
+        "stm32f10x_rcc.h": "c",
+        "nrf24l01.h": "c",
+        "gpio.h": "c",
+        "types.h": "c",
+        "ws2812.h": "c",
+        "sysclock.h": "c"
+    }
+}

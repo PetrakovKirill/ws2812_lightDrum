@@ -1,0 +1,35 @@
+#include <stddef.h>
+#include "link_list.h"
+
+void * LinkList_AddToTail(void *obj, void *newNode) {
+	linkList_t *_this = obj;
+	linkList_t *_new  = newNode;
+	
+    _new->next = _this->prev->next;
+	_this->prev->next = _new;
+	_new->prev = _this->prev;
+	_this->prev = _new;
+
+    return(_this->next);
+}
+
+
+
+void * LinkList_Del(void *obj) {
+    linkList_t *_this = obj;
+	linkList_t *ret;
+
+    _this->prev->next = _this->next;
+	_this->next->prev = _this->prev;	
+	
+	ret = _this->next;
+	
+	_this->next = _this->prev = _this;
+	
+    return (ret);
+}
+
+void LinkList_Init(void *obj) {
+	linkList_t *_this = obj;
+	_this->next = _this->prev = _this;
+}

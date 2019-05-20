@@ -1,0 +1,38 @@
+﻿#include "dispatch.h"
+
+static void Dispatch_Execute(void *obj);
+
+static dispatch_t  taskZeroList = { .dl.prev = &taskZeroList.dl, .dl.next = &taskZeroList.dl };
+static /*volatile*/ dispatch_t  *taskList = &taskZeroList;
+
+void Dispatch_AddTask(void *obj, uint16_t time, void (*Task)(void *arg), void *arg) {
+	dispatch_t *_this = obj;
+	_this->Dispatch_Handler = Task;
+	_this->arg = arg;
+	Timer_Start(&_this->t, time, Dispatch_Execute, _this);
+}
+
+
+
+
+void  __attribute__((optimize(0))) Dispatch_Start (void) {
+	while(1) {
+		while((void *)taskList == (void *)taskList->dl.next);
+		taskList->Dispatch_Handler(taskList->arg);
+		taskList = LinkList_Del(taskList);
+	}
+}
+
+static void Dispatch_Execute(void *obj) {
+	dispatch_t *_this = obj;
+	taskList = LinkList_AddToTail(&taskZeroList, _this);
+}
+
+
+void Dispatch_InitObj(void *obj) {
+	dispatch_t *_this = obj;
+
+	LinkList_Init(&_this->dl);
+	Timer_InitObj(&_this->t);
+
+}

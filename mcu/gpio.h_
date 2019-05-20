@@ -1,0 +1,65 @@
+#ifndef GPIO_H
+#define GPIO_H
+
+#include <stdint.h>
+
+typedef struct _gpio_config_t {
+    volatile uint32_t    _gpio0  : 4;
+    volatile uint32_t    _gpio1  : 4;
+    volatile uint32_t    _gpio2  : 4;
+    volatile uint32_t    _gpio3  : 4;
+    volatile uint32_t    _gpio4  : 4;
+    volatile uint32_t    _gpio5  : 4;
+    volatile uint32_t    _gpio6  : 4;
+    volatile uint32_t    _gpio7  : 4;
+    volatile uint32_t    _gpio8  : 4;
+    volatile uint32_t    _gpio9  : 4;
+    volatile uint32_t    _gpio10 : 4;
+    volatile uint32_t    _gpio11 : 4;
+    volatile uint32_t    _gpio12 : 4;
+    volatile uint32_t    _gpio13 : 4;
+    volatile uint32_t    _gpio14 : 4;
+    volatile uint32_t    _gpio15 : 4;
+} gpio_config_t;
+
+
+#define GPIO_ALTOUT_PP_50MHz  	(0x0B)
+#define GPIO_ALTOUT_PP_10MHz	(0x09)
+#define GPIO_ALTOUT_PP_2MHz		(0x0A)
+
+#define GPIO_ALTOUT_OD_50MHz	(0x0F)
+#define GPIO_ALTOUT_OD_10MHz	(0x0D)
+#define GPIO_ALTOUT_OD_2MHz		(0x0E)
+
+#define GPIO_OUT_PP_50MHz	(0x03)
+#define GPIO_OUT_PP_10MHz	(0x01)
+#define GPIO_OUT_PP_2MHz	(0x02)
+
+#define GPIO_OUT_OD_50MHz	(0x07)
+#define GPIO_OUT_OD_10MHz	(0x05)
+#define GPIO_OUT_OD_2MHz	(0x06)
+
+#define GPIO_ANALOG_INP	(0x00)
+#define GPIO_FLOAT_INP	(0x01)
+#define GPIO_PU_PD_INP	(0x02)
+
+// #define GPIO_PIN0		0
+// #define GPIO_PIN1		4
+// #define GPIO_PIN2		8
+// #define GPIO_PIN3		12
+// #define GPIO_PIN4		16
+// #define GPIO_PIN5		20
+// #define GPIO_PIN6		24
+// #define GPIO_PIN7		28
+// #define GPIO_PIN8		0
+// #define GPIO_PIN9		4
+// #define GPIO_PIN10		8
+// #define GPIO_PIN11		12
+// #define GPIO_PIN12		16
+// #define GPIO_PIN13		20
+// #define GPIO_PIN14		24
+// #define GPIO_PIN15		28
+
+#define GPIO_PIN_CONFIG(_port, _pin, _config)   (((gpio_config_t *)&_port->CRL)->_gpio##_pin = _config)
+
+#endif // GPIO_H

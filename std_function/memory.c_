@@ -1,0 +1,31 @@
+#include "memory.h"
+
+extern unsigned long _start_user_heap;
+
+#define Get_Stack(__gs)   __asm__( "mov %0, sp" : "=r"(__gs) : )
+
+void * Memory_Malloc(size_t size) {
+    /* Текущий указатель кучи */
+	static char *heapEnd = 0;
+	char        *prevHeapEnd;
+
+    if (heapEnd == 0) {
+        heapEnd = (char *)&_start_user_heap;
+    }
+
+    /* Вычисляем необходимый остаток для выравнивания */
+    int align = (size % 4) ? (4 - (size % 4)) : (0);
+    unsigned currentStack;
+
+	prevHeapEnd = heapEnd;
+    heapEnd += size + align;
+
+    Get_Stack(currentStack);
+
+    /* Проверка коллизии кучи со стеком */
+	if (heapEnd > (char *)currentStack) {
+	    heapEnd = prevHeapEnd;
+		return NULL; 
+	}
+	return (void *)prevHeapEnd;
+}

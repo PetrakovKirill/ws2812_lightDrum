@@ -1,0 +1,73 @@
+#include "stm32f10x.h"
+#include "timeout_ctrl.h"
+
+
+
+/* Данные общие для всех объектов */
+static timer_t  tZeroList = { .l.prev = (void *)&tZeroList, .l.next = (void *)&tZeroList };
+static timer_t *tListHead = &tZeroList;
+
+void Timer_Init(void) {
+	// Инициализация системного таймера
+	SysTick->CTRL = SysTick_CTRL_TICKINT      |
+					SysTick_CTRL_CLKSOURCE_Msk; 	//Тактирование от системной частоты
+
+	SysTick->VAL = SysTick->LOAD = (CLK_CPU/1000) - 1;
+	// Старт счетчика
+	SysTick->CTRL |= SysTick_CTRL_ENABLE;
+}
+
+void Timer_Start(void *obj, uint16_t timer, void (*Callback)(void *arg), void *arg) {
+	timer_t *_this = obj;
+
+	if ( (_this->l.prev != &_this->l) && (_this->l.next != &_this->l) ) {
+		return;
+	}
+
+    /* Все аргументы должны быть отличны от нуля */
+    if ( !(Callback && timer && _this) )
+        return;
+
+    _this->Timer_Handler = Callback;
+    _this->counter  = timer;
+    _this->arg = arg;
+
+    /* добавить новый элемент */
+    LinkList_AddToTail(tListHead, _this);
+}
+
+
+void Timer_Stop(void *obj) {
+	timer_t *_this = obj;
+    if (_this != tListHead) {
+	    _this = LinkList_Del(_this);
+	}
+}
+
+
+static void Timer_DecrementCounts(timer_t *_this) {
+	while(_this != tListHead) {
+		if (!_this->counter) {
+			// execute = _this;
+			_this->Timer_Handler(_this->arg);
+			if (_this != tListHead) {
+				_this = LinkList_Del(_this);
+			}
+			continue;
+		}
+		_this->counter--;
+		_this = (timer_t *)_this->l.next;
+	}
+}
+
+
+/* Обработчик прерывания таймера 1 */
+void SysTick_Handler(void) {
+	Timer_DecrementCounts((timer_t *)tListHead->l.next);
+}
+
+void Timer_InitObj(void *obj) {
+	timer_t *_this = obj;
+
+	LinkList_Init(&_this->l);
+}

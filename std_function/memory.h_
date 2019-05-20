@@ -1,0 +1,10 @@
+#ifndef _MEMORY_
+#define _MEMORY_
+
+#include <stddef.h>
+
+#define malloc(_size)   Memory_Malloc(_size)
+
+void * Memory_Malloc(size_t size);
+
+#endif /* _MEMORY_ */

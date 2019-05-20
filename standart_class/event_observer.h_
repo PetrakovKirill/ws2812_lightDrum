@@ -1,0 +1,27 @@
+#ifndef _EVENT_OBSERVERS_
+#define _EVENT_OBSERVERS_
+
+#include "link_list.h"
+
+
+typedef struct observer {
+    linkList_t observers;
+
+    void (*ObserverHandler)(void *arg);
+    void *arg;
+} observer_t;
+
+
+void CreatObserver(void *obj, void (*ObserverHandler)(void *arg), void *argHandler );
+
+
+typedef struct event {
+    linkList_t  observers;
+} event_t;
+
+void Event_Init(void *obj);
+void EventHandler(void *obj);
+void Event_AddObserver(void *obj, observer_t *observer);
+void Event_DelObserver(void *obj, observer_t *observer);
+
+#endif /* _EVENT_OBSERVERS_ */

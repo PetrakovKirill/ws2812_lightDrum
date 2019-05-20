@@ -1,0 +1,22 @@
+﻿#ifndef DISPATCH_H_
+#define DISPATCH_H_
+
+
+#include "timeout_ctrl.h"
+
+
+
+typedef struct dispatch {
+	linkList_t dl;
+	
+	timer_t t;
+	void (*Dispatch_Handler)(void *arg);
+	void  *arg;
+}dispatch_t;
+
+void Dispatch_AddTask(void * obj, uint16_t time, void (*Task)(void *arg), void *arg);
+void Dispatch_Start(void);
+
+void  Dispatch_InitObj(void *obj);
+
+#endif /* DISPATCH_H_ */

@@ -1,0 +1,16 @@
+#ifndef _LINK_LIST_H_
+#define _LINK_LIST_H_
+
+typedef struct linkList {
+    struct linkList *prev;
+    struct linkList *next;
+} linkList_t;
+
+void * LinkList_AddToHead(void *obj, void *newNode);
+void * LinkList_AddToTail(void *obj, void *newNode);
+void * LinkList_MoveNext(void *obj);
+void * LinkList_Del(void *obj);
+
+void LinkList_Init(void *obj);
+
+#endif /* _LINK_LIST_H_ */

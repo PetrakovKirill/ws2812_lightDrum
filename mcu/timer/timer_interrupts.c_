@@ -1,0 +1,62 @@
+#include "stm32f10x.h"
+#include "event_observer.h"
+
+event_t timer1_ovf = {
+    .observers.prev = (void *)&timer1_ovf,
+    .observers.next = (void *)&timer1_ovf
+};
+
+event_t timer2_ovf = {
+    .observers.prev = (void *)&timer2_ovf,
+    .observers.next = (void *)&timer2_ovf
+};
+
+event_t timer3_ovf = {
+    .observers.prev = (void *)&timer3_ovf,
+    .observers.next = (void *)&timer3_ovf
+};
+
+event_t timer4_ovf = {
+    .observers.prev = (void *)&timer4_ovf,
+    .observers.next = (void *)&timer4_ovf
+};
+
+void TIM1_IRQHandler(void) {
+    int status = TIM1->SR;
+    TIM1->SR = 0;
+
+    if (status & TIM_SR_UIF) {
+        EventHandler(&timer1_ovf);
+    }
+}
+
+void TIM2_IRQHandler(void) {
+    int status = TIM2->SR;
+    TIM2->SR = 0;
+
+    if (status & TIM_SR_UIF) {
+        EventHandler(&timer2_ovf);
+    }
+}
+
+
+
+void TIM3_IRQHandler(void) {
+    int status = TIM3->SR;
+    TIM3->SR = 0;
+
+    if (status & TIM_SR_UIF) {
+        EventHandler(&timer3_ovf);
+    }
+}
+
+
+
+void TIM4_IRQHandler(void) {
+    int status = TIM4->SR;
+    TIM4->SR = 0;
+
+    if (status & TIM_SR_UIF) {
+        EventHandler(&timer4_ovf);
+    }
+}

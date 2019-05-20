@@ -1,0 +1,23 @@
+#ifndef _TIMEOUT_CONTROL_H_
+#define _TIMEOUT_CONTROL_H_
+
+#include "link_list.h"
+#include <stdint.h>
+
+typedef struct _timeout {
+/* Наследование от класса linkList */
+    linkList_t      l; /* list */
+
+    void           (*Timer_Handler)(void *arg);
+    void            *arg;
+    int32_t          counter;
+} timer_t;
+
+
+void Timer_Init(void);
+void Timer_Start(void *obj, uint16_t timer, void (*Callback)(void *arg), void *arg);
+void Timer_Stop(void *_this);
+
+void Timer_InitObj(void *obj);
+
+#endif /* _TIMEOUT_CONTROL_H_ */

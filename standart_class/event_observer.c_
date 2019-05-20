@@ -1,0 +1,42 @@
+#include "event_observer.h"
+
+void CreatObserver(void *obj, void (*ObserverHandler)(void *arg), void *argHandler ) {
+    observer_t *_this = obj;
+    LinkList_Init(&_this->observers);
+    _this->ObserverHandler = ObserverHandler;
+    _this->arg = argHandler;
+}
+
+
+void Event_Init(void *obj) {
+    event_t *_this = obj;
+    LinkList_Init(&_this->observers);
+    // _this->observers.prev = _this->observers.next = obj;
+}
+
+
+
+
+void EventHandler(void *obj) {
+    event_t *_this = obj;
+    observer_t *nextObserver = (void *)_this->observers.next;
+    
+    while( (void *)&_this->observers != (void *)nextObserver ) {
+        nextObserver->ObserverHandler(nextObserver->arg);
+        nextObserver = (void *)nextObserver->observers.next;
+    }
+}
+
+
+
+
+void Event_AddObserver(void *obj, observer_t *observer) {
+    LinkList_AddToTail(obj, observer);
+}
+
+
+
+
+void Event_DelObserver(void *obj, observer_t *observer) {
+    LinkList_Del(observer);
+}
